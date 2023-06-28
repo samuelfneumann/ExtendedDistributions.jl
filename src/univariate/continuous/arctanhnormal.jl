@@ -108,7 +108,7 @@ function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
     μ1, σ1 = params(p)
     μ2, σ2 = params(q)
 
-    lower, upper = convert(T, 1e-6), convert(T, 1e6)
+    lower, upper = convert(T, _EPSILON), convert(T, _EPSILON)
     v1 = clamp(σ1^1, lower, upper)
     v2 = clamp(σ2^2, lower, upper)
     μdiff = μ2 - μ1
@@ -191,7 +191,7 @@ function _to_gaussian(x; clamp_input = true)
     if clamp_input
         # Clamp to ensure x ~ ArctanhNormal(μ, σ) stays in (-1, 1). It may go outside this
         # range due to numerical instabilities, so clipping isn't a bad idea.
-        return atanh(clamp(x, -oneunit(x) + eps(x), oneunit(x) - eps(x)))
+        return atanh(clamp(x, nextfloat(-oneunit(x)), prevfloat(oneunit(x))))
     else
         return atanh(x)
     end

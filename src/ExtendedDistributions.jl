@@ -4,7 +4,7 @@ using Random
 using Reexport
 @reexport using Distributions
 
-const _EPSILON = 1e-6
+const _fEPSILON = 1e-6
 
 include("univariates.jl")
 
