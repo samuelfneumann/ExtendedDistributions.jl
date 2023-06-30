@@ -1,3 +1,5 @@
+const _GAUSS_OFFSET = 1f-6
+
 """
     ArctanhNormal(a, b)
 
@@ -191,7 +193,7 @@ function _to_gaussian(x; clamp_input = true)
     if clamp_input
         # Clamp to ensure x ~ ArctanhNormal(μ, σ) stays in (-1, 1). It may go outside this
         # range due to numerical instabilities, so clipping isn't a bad idea.
-        return atanh(clamp(x, nextfloat(-oneunit(x)), prevfloat(oneunit(x))))
+        return atanh(clamp(x, -oneunit(x) + _GAUSS_OFFSET, oneunit(x) - _GAUSS_OFFSET))
     else
         return atanh(x)
     end
