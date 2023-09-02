@@ -1,4 +1,4 @@
-const _GAUSS_OFFSET = 1f-6
+const _GAUSS_OFFSET = 1f-8
 
 """
     ArctanhNormal(a, b)
@@ -97,26 +97,31 @@ Distributions.median(d::ArctanhNormal{T}) where {T} = quantile(d, oftype(T, 1//2
 function Distributions.entropy(d::ArctanhNormal{T}) where {T}
     # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
     #              rlax/_src/distributions.py#L319
-    μ, σ = params(μ, σ)
+    _, σ = params(d)
     _two = one(T) + one(T)
 
-    return log(sigma) + oftype(sigma, 1//2) * (one(T) + log(_two * π))
+    return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
 end
 
 function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
+    # The KL divergence between two ArctanhNormal distributions is equal to the KL
+    # divergence between their Normal counterparts. That is, if X and Y follow ArctanhNormal
+    # distributions with parameters (μx, σX) and (μy, σy) respectively, then
+    #
+    #   KL(X || Y) = KL(arctanh(X) || arctanh(Y)) = KL(Normal(μx, σx) || Normal(μy, σy))
+    #
     # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
     #              rlax/_src/distributions.py#L319
-    T = promote(T1, T2)
     μ1, σ1 = params(p)
     μ2, σ2 = params(q)
 
-    lower, upper = convert(T, _EPSILON), convert(T, _EPSILON)
-    v1 = clamp(σ1^1, lower, upper)
+    lower, upper = _EPSILON, inv(_EPSILON)
+    v1 = clamp(σ1^2, lower, upper)
     v2 = clamp(σ2^2, lower, upper)
     μdiff = μ2 - μ1
 
-    kl_mean = oftype(μdiff, 1//2) * μdiff^2 / v2
-    kl_cov = oftype(μdiff, 1//2) * (v1/v2) - one(T) + log(v2) - log(v1)
+    kl_mean = 0.5f0 * μdiff^2 / v2
+    kl_cov = 0.5f0 * ((v1/v2) - one(v1) + log(v2) - log(v1))
 
     return kl_mean + kl_cov
 end
