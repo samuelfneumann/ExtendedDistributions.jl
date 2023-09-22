@@ -1,4 +1,4 @@
-const _GAUSS_OFFSET = 1f-8
+const _GAUSS_OFFSET = 1f-6
 
 """
     ArctanhNormal(a, b)
@@ -153,31 +153,45 @@ function Base.rand(rng::AbstractRNG, d::ArctanhNormal{T}) where T
 end
 
 # #### PDFs and CDFs
-function Distributions.logpdf(d::ArctanhNormal, x::Real)
-    if !insupport(d, x)
-        return -Inf
+function Distributions.logpdf(
+    d::ArctanhNormal{T}, x::Real; include_boundary = false,
+) where {T}
+    if include_boundary && minimum(d) <= x <= maximum(d)
+    elseif !insupport(d, x)
+        return -T(Inf)
     end
     μ, σ = params(d)
 
-    gauss_x = _to_gaussian(x)
+    gauss_x = _to_gaussian(x; clamp_input = include_boundary)
     norm = Normal(μ, σ)
     log_density = logpdf(norm, gauss_x)
 
-    shift = log1p(-x^2 + _EPSILON)
+    if include_boundary
+        shift = log1p(-x^2 + _EPSILON)
+    else
+        shift = log1p(-x^2)
+    end
     return log_density - shift
 end
 
-function Distributions.pdf(d::ArctanhNormal{T}, x::Real) where {T}
-    if !insupport(d, x)
+function Distributions.pdf(
+    d::ArctanhNormal{T}, x::Real; include_boundary = false,
+) where {T}
+    if include_boundary && minimum(d) <= x <= maximum(d)
+    elseif !insupport(d, x)
         return zero(T)
     end
     μ, σ = params(d)
 
-    gauss_x = _to_gaussian(x)
+    gauss_x = _to_gaussian(x; clamp_input = include_boundary)
     norm = Normal(μ, σ)
     density = pdf(norm, gauss_x)
 
-    scale = one(x) - x^2 + _EPSILON # ∈ (_EPSILON, 1 + _EPSILON)
+    if include_boundary
+        scale = one(x) - x^2 + _EPSILON # ∈ (_EPSILON, 1 + _EPSILON)
+    else
+        scale = one(x) - x^2
+    end
     return density / scale
 end
 
@@ -198,7 +212,7 @@ function _to_gaussian(x; clamp_input = true)
     if clamp_input
         # Clamp to ensure x ~ ArctanhNormal(μ, σ) stays in (-1, 1). It may go outside this
         # range due to numerical instabilities, so clipping isn't a bad idea.
-        return atanh(clamp(x, -oneunit(x) + _GAUSS_OFFSET, oneunit(x) - _GAUSS_OFFSET))
+        return atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
     else
         return atanh(x)
     end
