@@ -44,6 +44,10 @@ function LogitMetalogistic(lb::Real, ub::Real, coeff::Tuple{Real}; check_args::B
     LogitMetalogistic(promote(lb, ub, coeff...)...; check_args = check_args)
 end
 
+function LogitMetalogistic(args...; kwargs...)
+    LogitMetalogistic(0f0, 1f0, args...; kwargs...)
+end
+
 Distributions.minimum(d::LogitMetalogistic) = d._lowerbound
 Distributions.maximum(d::LogitMetalogistic) = d._upperbound
 function Distributions.insupport(d::LogitMetalogistic, x::Real)

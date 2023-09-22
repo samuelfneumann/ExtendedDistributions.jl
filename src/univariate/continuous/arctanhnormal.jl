@@ -97,26 +97,31 @@ Distributions.median(d::ArctanhNormal{T}) where {T} = quantile(d, oftype(T, 1//2
 function Distributions.entropy(d::ArctanhNormal{T}) where {T}
     # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
     #              rlax/_src/distributions.py#L319
-    μ, σ = params(μ, σ)
+    _, σ = params(d)
     _two = one(T) + one(T)
 
-    return log(sigma) + oftype(sigma, 1//2) * (one(T) + log(_two * π))
+    return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
 end
 
 function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
+    # The KL divergence between two ArctanhNormal distributions is equal to the KL
+    # divergence between their Normal counterparts. That is, if X and Y follow ArctanhNormal
+    # distributions with parameters (μx, σX) and (μy, σy) respectively, then
+    #
+    #   KL(X || Y) = KL(arctanh(X) || arctanh(Y)) = KL(Normal(μx, σx) || Normal(μy, σy))
+    #
     # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
     #              rlax/_src/distributions.py#L319
-    T = promote(T1, T2)
     μ1, σ1 = params(p)
     μ2, σ2 = params(q)
 
-    lower, upper = convert(T, _EPSILON), convert(T, _EPSILON)
-    v1 = clamp(σ1^1, lower, upper)
+    lower, upper = _EPSILON, inv(_EPSILON)
+    v1 = clamp(σ1^2, lower, upper)
     v2 = clamp(σ2^2, lower, upper)
     μdiff = μ2 - μ1
 
-    kl_mean = oftype(μdiff, 1//2) * μdiff^2 / v2
-    kl_cov = oftype(μdiff, 1//2) * (v1/v2) - one(T) + log(v2) - log(v1)
+    kl_mean = 0.5f0 * μdiff^2 / v2
+    kl_cov = 0.5f0 * ((v1/v2) - one(v1) + log(v2) - log(v1))
 
     return kl_mean + kl_cov
 end
@@ -148,31 +153,45 @@ function Base.rand(rng::AbstractRNG, d::ArctanhNormal{T}) where T
 end
 
 # #### PDFs and CDFs
-function Distributions.logpdf(d::ArctanhNormal, x::Real)
-    if !insupport(d, x)
-        return -Inf
+function Distributions.logpdf(
+    d::ArctanhNormal{T}, x::Real; include_boundary = false,
+) where {T}
+    if include_boundary && minimum(d) <= x <= maximum(d)
+    elseif !insupport(d, x)
+        return -T(Inf)
     end
     μ, σ = params(d)
 
-    gauss_x = _to_gaussian(x)
+    gauss_x = _to_gaussian(x; clamp_input = include_boundary)
     norm = Normal(μ, σ)
     log_density = logpdf(norm, gauss_x)
 
-    shift = log1p(-x^2 + _EPSILON)
+    if include_boundary
+        shift = log1p(-x^2 + _EPSILON)
+    else
+        shift = log1p(-x^2)
+    end
     return log_density - shift
 end
 
-function Distributions.pdf(d::ArctanhNormal{T}, x::Real) where {T}
-    if !insupport(d, x)
+function Distributions.pdf(
+    d::ArctanhNormal{T}, x::Real; include_boundary = false,
+) where {T}
+    if include_boundary && minimum(d) <= x <= maximum(d)
+    elseif !insupport(d, x)
         return zero(T)
     end
     μ, σ = params(d)
 
-    gauss_x = _to_gaussian(x)
+    gauss_x = _to_gaussian(x; clamp_input = include_boundary)
     norm = Normal(μ, σ)
     density = pdf(norm, gauss_x)
 
-    scale = one(x) - x^2 + _EPSILON # ∈ (_EPSILON, 1 + _EPSILON)
+    if include_boundary
+        scale = one(x) - x^2 + _EPSILON # ∈ (_EPSILON, 1 + _EPSILON)
+    else
+        scale = one(x) - x^2
+    end
     return density / scale
 end
 
@@ -193,7 +212,7 @@ function _to_gaussian(x; clamp_input = true)
     if clamp_input
         # Clamp to ensure x ~ ArctanhNormal(μ, σ) stays in (-1, 1). It may go outside this
         # range due to numerical instabilities, so clipping isn't a bad idea.
-        return atanh(clamp(x, -oneunit(x) + _GAUSS_OFFSET, oneunit(x) - _GAUSS_OFFSET))
+        return atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
     else
         return atanh(x)
     end

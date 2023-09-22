@@ -15,6 +15,10 @@ export
     feasible4,
     feasible3,
     feasible2,
-    isfeasible
+    isfeasible,
+    analytical_entropy,
+    no_analytical_entropy,
+    analytical_kl,
+    no_analytical_kl
 
 end
