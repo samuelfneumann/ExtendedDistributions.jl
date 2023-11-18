@@ -2,6 +2,7 @@ module ExtendedDistributions
 
 using Random
 using Reexport
+using StatsFuns
 @reexport using Distributions
 
 const _EPSILON = 1f-6

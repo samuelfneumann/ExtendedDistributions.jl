@@ -152,6 +152,22 @@ function Base.rand(rng::AbstractRNG, d::ArctanhNormal{T}) where T
     return tanh(rand(rng, norm))
 end
 
+# normlogpdf(z::Number) = -(abs2(z) + log2π)/2
+# function normlogpdf(μ::Real, σ::Real, x::Number)
+#     if iszero(σ)
+#         if x == μ
+#             z = zval(μ, one(σ), x)
+#         else
+#             z = zval(μ, σ, x)
+#             σ = one(σ)
+#         end
+#     else
+#         z = zval(μ, σ, x)
+#     end
+#     normlogpdf(z) - log(σ)
+# end
+# zval(μ::Real, σ::Real, x::Number) = (x - μ) / σ
+
 # #### PDFs and CDFs
 function Distributions.logpdf(
     d::ArctanhNormal{T}, x::Real; include_boundary = false,
@@ -163,8 +179,9 @@ function Distributions.logpdf(
     μ, σ = params(d)
 
     gauss_x = _to_gaussian(x; clamp_input = include_boundary)
-    norm = Normal(μ, σ)
-    log_density = logpdf(norm, gauss_x)
+    # norm = Normal(μ, σ)
+    # log_density = logpdf(norm, gauss_x)
+    log_density = normlogpdf(μ, σ, gauss_x)
 
     if include_boundary
         shift = log1p(-x^2 + _EPSILON)
