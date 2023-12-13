@@ -153,16 +153,26 @@ function Base.rand(rng::AbstractRNG, d::ArctanhNormal{T}) where T
 end
 
 # #### PDFs and CDFs
-function Distributions.logpdf(
-    d::ArctanhNormal{T}, x::Real; # include_boundary=false,
-)::Real where {T}
-    μ, σ = params(d)
-
-    gauss_x = atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
+atanhnormlogpdf(μ::Real, σ::Real, x::Real) = atanhnormlogpdf(promote(μ, σ, x)...)
+function atanhnormlogpdf(μ::T, σ::T, x::T) where {T<:Real}
+    _x = clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET)
+    gauss_x = atanh(_x)
     log_density = normlogpdf(μ, σ, gauss_x)
 
     shift = log1p(-x^2 + _EPSILON)
     return log_density - shift
+end
+
+function Distributions.logpdf(
+    d::ArctanhNormal{T}, x::Real; # include_boundary=false,
+)::Real where {T}
+    μ, σ = params(d)
+    return atanhnormlogpdf(μ, σ, x)
+
+     # gauss_x = atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
+     # log_density = normlogpdf(μ, σ, gauss_x)
+     # shift = log1p(-x^2 + _EPSILON)
+     # return log_density - shift
 end
 
 function Distributions.pdf(

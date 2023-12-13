@@ -4,7 +4,8 @@ const continuous_distributions = [
     "arctanhnormal",
     "metalogistic",
     "logitmetalogistic",
-    # "kumaraswamy",
+    "kumaraswamy",
+    "laplace",
 ]
 
 for dname in discrete_distributions

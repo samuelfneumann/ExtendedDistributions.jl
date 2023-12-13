@@ -2,7 +2,7 @@ module ExtendedDistributions
 
 using Random
 using Reexport
-using StatsFuns
+@reexport using StatsFuns
 @reexport using Distributions
 
 const _EPSILON = 1f-6
@@ -20,6 +20,8 @@ export
     analytical_entropy,
     no_analytical_entropy,
     analytical_kl,
-    no_analytical_kl
+    no_analytical_kl,
+    kumaraswamylogpdf,
+    atanhnormlogpdf
 
 end
