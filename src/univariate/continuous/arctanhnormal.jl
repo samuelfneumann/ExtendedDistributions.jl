@@ -103,7 +103,11 @@ function Distributions.entropy(d::ArctanhNormal{T}) where {T}
     return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
 end
 
-function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
+function atanhnormkldivergence(μ1::Real, σ1::Real, μ2::Real, σ2::Real)
+    return atanhnormkldivergence(promote(μ1, σ1, μ2, σ2)...)
+end
+
+function atanhnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
     # The KL divergence between two ArctanhNormal distributions is equal to the KL
     # divergence between their Normal counterparts. That is, if X and Y follow ArctanhNormal
     # distributions with parameters (μx, σX) and (μy, σy) respectively, then
@@ -112,9 +116,6 @@ function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
     #
     # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
     #              rlax/_src/distributions.py#L319
-    μ1, σ1 = params(p)
-    μ2, σ2 = params(q)
-
     lower, upper = _EPSILON, inv(_EPSILON)
     v1 = clamp(σ1^2, lower, upper)
     v2 = clamp(σ2^2, lower, upper)
@@ -124,6 +125,12 @@ function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
     kl_cov = 0.5f0 * ((v1/v2) - one(v1) + log(v2) - log(v1))
 
     return kl_mean + kl_cov
+end
+
+function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
+    μ1, σ1 = params(p)
+    μ2, σ2 = params(q)
+    return atanhnormkldivergence(μ1, σ1, μ2, σ2)
 end
 
 # #### Sampling
