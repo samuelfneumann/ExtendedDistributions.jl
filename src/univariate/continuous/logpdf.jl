@@ -12,14 +12,25 @@ function logitnormlogpdf(μ::T, σ::T, x::T) where {T<:Real}
     end
 end
 
+# ################################################################### 
+# Logistic
+# ################################################################### 
+logistic_zval(μ, θ, x) = (x - μ) / θ
+logistic_xval(μ, θ, z) = μ + z * θ
+
+@dist_args logisticlogpdf Logistic
+@promote logisticlogpdf
+function logisticlogpdf(μ::T, θ::T, x::T) where {T<:Real}
+    return (u = -abs(logistic_zval(μ, θ, x)); u - 2*log1pexp(u) - log(θ))
+end
 
 # ################################################################### 
 # Laplace
 # ################################################################### 
 laplace_zval(μ, θ, x) = (x - μ) / θ
-laplace_xval(μ, θ, x) = μ + z * θ
+laplace_xval(μ, θ, z) = μ + z * θ
 
-@dist_args laplaclogpdf Laplace
+@dist_args laplacelogpdf Laplace
 @promote laplacelogpdf
 function laplacelogpdf(μ::T, θ::T, x::T) where {T<:Real}
     return -(abs(zval(μ, θ, x)) + log(2*θ))

@@ -2,11 +2,19 @@ macro promote(f)
     :($f(args::Real...) = $f(promote(args...)...))
 end
 
+# TODO: @dist_args D pre params...
+# e.g. @dist_args Kumaraswamy kumaraswamy a b 
+# e.g. @dist_args Normal norm μ σ
+#   this would then provide implementations for all functions
 macro dist_args(f, T)
     if occursin("kldivergence", String(f))
         :($f(p::$T, q::$T) = $f(params(p)..., params(q)...))
     elseif occursin("logpdf", String(f))
         :($f(p::$T, x) = $f(params(p)..., x))
+    elseif occursin("cdf", String(f))
+        :($f(p::$T, y) = $f(params(p)..., y))
+    elseif occursin("quantile", String(f))
+        :($f(p::$T, q) = $f(params(p)..., q))
     else
         error("could not create function $f with type $T")
     end
@@ -20,6 +28,8 @@ const continuous_distributions = [
     "logitmetalogistic",
     "logpdf",
     "kldivergence",
+    "cdf",
+    "quantile",
 ]
 
 for dname in discrete_distributions

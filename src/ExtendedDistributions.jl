@@ -22,18 +22,37 @@ export
     analytical_kl,
     no_analytical_kl,
 
-    # logpdf 
+    # logpdf
     kumaraswamylogpdf,
     atanhnormlogpdf,
     laplacelogpdf,
     logitnormlogpdf,
+    logisticlogpdf,
 
     # kldivergence
     atanhnormkldivergence,
     betakldivergence,
     laplacekldivergence,
     normkldivergence,
-    logitnormkldivergence
+    logitnormkldivergence,
 
+    # cdf and ccdf
+    kumaraswamycdf,
+    kumaraswamyccdf,
+    logitnormcdf,
+    logitnormccdf,
+    laplacecdf,
+    laplaceccdf,
+    atanhnormcdf,
+    atanhnormccdf,
+    logisticcdf,
+    logisticccdf,
 
+    # quantile
+    kumaraswamyquantile,
+    logitnormquantile,
+    laplacequantile,
+    atanhnormquantile,
+    normquantile,
+    logisticquantile
 end

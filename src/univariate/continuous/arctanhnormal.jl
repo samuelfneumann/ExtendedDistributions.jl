@@ -104,9 +104,7 @@ function Distributions.entropy(d::ArctanhNormal{T}) where {T}
 end
 
 function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
-    μ1, σ1 = params(p)
-    μ2, σ2 = params(q)
-    return atanhnormkldivergence(μ1, σ1, μ2, σ2)
+    return atanhnormkldivergence(p, q)
 end
 
 # #### Sampling
@@ -141,11 +139,6 @@ function Distributions.logpdf(
 )::Real where {T}
     μ, σ = params(d)
     return atanhnormlogpdf(μ, σ, x)
-
-     # gauss_x = atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
-     # log_density = normlogpdf(μ, σ, gauss_x)
-     # shift = log1p(-x^2 + _EPSILON)
-     # return log_density - shift
 end
 
 function Distributions.pdf(
@@ -175,7 +168,5 @@ function Distributions.cdf(d::ArctanhNormal{T}, x::Real) where {T}
 end
 
 function Distributions.quantile(d::ArctanhNormal{T}, q::Real) where {T}
-    μ, σ = params(d)
-    n = Normal(μ, σ)
-    return tanh(quantile(n, q))
+    return atanhnormquantile(params(d)..., q)
 end
