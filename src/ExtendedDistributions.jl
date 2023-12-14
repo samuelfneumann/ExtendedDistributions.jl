@@ -21,7 +21,19 @@ export
     no_analytical_entropy,
     analytical_kl,
     no_analytical_kl,
+
+    # logpdf 
     kumaraswamylogpdf,
-    atanhnormlogpdf
+    atanhnormlogpdf,
+    laplacelogpdf,
+    logitnormlogpdf,
+
+    # kldivergence
+    atanhnormkldivergence,
+    betakldivergence,
+    laplacekldivergence,
+    normkldivergence,
+    logitnormkldivergence
+
 
 end
