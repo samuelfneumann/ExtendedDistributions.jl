@@ -1,6 +1,20 @@
-# ################################################################### 
+# ###################################################################
+# LogUniform
+# ###################################################################
+@dist_args loguniformlogpdf LogUniform
+@promote loguniformlogpdf
+function logitnormlogpdf(a::T, b::T, x::T) where {T<:Real}
+loguniformlogpdf
+    if a <= x <= b
+        return -log(x * log(b/a))
+    else
+        return -T(Inf)
+    end
+end
+
+# ###################################################################
 # LogitNormal
-# ################################################################### 
+# ###################################################################
 @dist_args logitnormlogpdf LogitNormal
 @promote logitnormlogpdf
 function logitnormlogpdf(μ::T, σ::T, x::T) where {T<:Real}
@@ -12,9 +26,9 @@ function logitnormlogpdf(μ::T, σ::T, x::T) where {T<:Real}
     end
 end
 
-# ################################################################### 
+# ###################################################################
 # Logistic
-# ################################################################### 
+# ###################################################################
 logistic_zval(μ, θ, x) = (x - μ) / θ
 logistic_xval(μ, θ, z) = μ + z * θ
 
@@ -24,21 +38,21 @@ function logisticlogpdf(μ::T, θ::T, x::T) where {T<:Real}
     return (u = -abs(logistic_zval(μ, θ, x)); u - 2*log1pexp(u) - log(θ))
 end
 
-# ################################################################### 
+# ###################################################################
 # Laplace
-# ################################################################### 
+# ###################################################################
 laplace_zval(μ, θ, x) = (x - μ) / θ
 laplace_xval(μ, θ, z) = μ + z * θ
 
 @dist_args laplacelogpdf Laplace
 @promote laplacelogpdf
 function laplacelogpdf(μ::T, θ::T, x::T) where {T<:Real}
-    return -(abs(zval(μ, θ, x)) + log(2*θ))
+    return -(abs(laplace_zval(μ, θ, x)) + log(2*θ))
 end
 
-# ################################################################### 
+# ###################################################################
 # ArctanhNormal
-# ################################################################### 
+# ###################################################################
 @dist_args atanhnormlogpdf ArctanhNormal
 @promote atanhnormlogpdf
 function atanhnormlogpdf(μ::T, σ::T, x::T) where {T<:Real}
@@ -50,9 +64,9 @@ function atanhnormlogpdf(μ::T, σ::T, x::T) where {T<:Real}
     return log_density - shift
 end
 
-# ################################################################### 
+# ###################################################################
 # Kumaraswamy
-# ################################################################### 
+# ###################################################################
 @dist_args kumaraswamylogpdf Kumaraswamy
 @promote kumaraswamylogpdf
 function kumaraswamylogpdf(a::T, b::T, x::T) where {T<:Real}

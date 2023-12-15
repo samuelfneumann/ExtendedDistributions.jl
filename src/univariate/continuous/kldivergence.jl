@@ -1,15 +1,25 @@
-# #################################################################### 
+# ####################################################################
+# LogUniform
+# ####################################################################
+@dist_args loguniformkldivergence LogUniform
+@promote loguniformkldivergence
+function loguniformkldivergence(a1::T, b1::T, a2::T, b2::T) where {T<:Real}
+    finite = a2 <= a1 < b1 <= b2
+    return finite ? log(log(b2 / a2) / log(b1 / a1)) : oftype(T, Inf)
+end
+
+# ####################################################################
 # LogitNormal
-# #################################################################### 
+# ####################################################################
 @dist_args logitnormkldivergence LogitNormal
 @promote logitnormkldivergence
 function logitnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
     return normkldivergence(μ1, σ1, μ2, σ2)
 end
 
-# #################################################################### 
+# ####################################################################
 # Laplace
-# #################################################################### 
+# ####################################################################
 @dist_args laplacekldivergence Laplace
 @promote laplacekldivergence
 function laplacekldivergence(μ1::T, θ1::T, μ2::T, θ2::T) where {T<:Real}
@@ -18,9 +28,9 @@ function laplacekldivergence(μ1::T, θ1::T, μ2::T, θ2::T) where {T<:Real}
 end
 
 
-# #################################################################### 
+# ####################################################################
 # Normal
-# #################################################################### 
+# ####################################################################
 @dist_args normkldivergence Normal
 @promote normkldivergence
 function normkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
@@ -35,9 +45,9 @@ function normkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
     return kl_mean + kl_cov
 end
 
-# #################################################################### 
+# ####################################################################
 # ArctanhNormal
-# #################################################################### 
+# ####################################################################
 @dist_args atanhnormkldivergence ArctanhNormal
 @promote atanhnormkldivergence
 function atanhnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
@@ -60,9 +70,9 @@ function atanhnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
     return kl_mean + kl_cov
 end
 
-# #################################################################### 
+# ####################################################################
 # Beta
-# #################################################################### 
+# ####################################################################
 @dist_args betakldivergence Beta
 @promote betakldivergence
 function betakldivergence(α1::T, β1::T, α2::T, β2::T) where {T<:Real}

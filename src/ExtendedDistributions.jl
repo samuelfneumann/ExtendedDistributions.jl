@@ -28,6 +28,7 @@ export
     laplacelogpdf,
     logitnormlogpdf,
     logisticlogpdf,
+    loguniformlogpdf,
 
     # kldivergence
     atanhnormkldivergence,
@@ -35,6 +36,7 @@ export
     laplacekldivergence,
     normkldivergence,
     logitnormkldivergence,
+    loguniformkldivergence,
 
     # cdf and ccdf
     kumaraswamycdf,
@@ -47,6 +49,8 @@ export
     atanhnormccdf,
     logisticcdf,
     logisticccdf,
+    loguniformcccdf,
+    loguniformccdf,
 
     # quantile
     kumaraswamyquantile,
@@ -54,5 +58,6 @@ export
     laplacequantile,
     atanhnormquantile,
     normquantile,
-    logisticquantile
+    logisticquantile,
+    loguniformquantile
 end

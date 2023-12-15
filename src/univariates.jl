@@ -3,7 +3,7 @@ macro promote(f)
 end
 
 # TODO: @dist_args D pre params...
-# e.g. @dist_args Kumaraswamy kumaraswamy a b 
+# e.g. @dist_args Kumaraswamy kumaraswamy a b
 # e.g. @dist_args Normal norm μ σ
 #   this would then provide implementations for all functions
 macro dist_args(f, T)
@@ -98,6 +98,9 @@ analytical_entropy(x::UnivariateDistribution) = analytical_entropy(typeof(x))
 @analytical_kl Gamma
 @analytical_kl Laplace
 @analytical_kl Normal
+@analytical_kl LogitNormal
+
+@no_analytical_entropy LogitNormal
 
 @no_analytical_kl Kumaraswamy
 
