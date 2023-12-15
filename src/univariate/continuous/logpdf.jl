@@ -3,7 +3,7 @@
 # ###################################################################
 @dist_args loguniformlogpdf LogUniform
 @promote loguniformlogpdf
-function logitnormlogpdf(a::T, b::T, x::T) where {T<:Real}
+function loguniformlogpdf(a::T, b::T, x::T) where {T<:Real}
 loguniformlogpdf
     if a <= x <= b
         return -log(x * log(b/a))
