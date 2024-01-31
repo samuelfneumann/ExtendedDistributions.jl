@@ -3,7 +3,7 @@
 # ####################################################################
 @dist_args loguniformkldivergence LogUniform
 @promote loguniformkldivergence
-function loguniformkldivergence(a1::T, b1::T, a2::T, b2::T) where {T<:Real}
+function loguniformkldivergence(a1::T, b1::T, a2::T, b2::T)::T where {T<:Real}
     finite = a2 <= a1 < b1 <= b2
     return finite ? log(log(b2 / a2) / log(b1 / a1)) : oftype(T, Inf)
 end
@@ -13,7 +13,7 @@ end
 # ####################################################################
 @dist_args logitnormkldivergence LogitNormal
 @promote logitnormkldivergence
-function logitnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
+function logitnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T)::T where {T<:Real}
     return normkldivergence(μ1, σ1, μ2, σ2)
 end
 
@@ -22,7 +22,7 @@ end
 # ####################################################################
 @dist_args laplacekldivergence Laplace
 @promote laplacekldivergence
-function laplacekldivergence(μ1::T, θ1::T, μ2::T, θ2::T) where {T<:Real}
+function laplacekldivergence(μ1::T, θ1::T, μ2::T, θ2::T)::T where {T<:Real}
     r = abs(μ1 - μ2)
     return (θ1 * exp(-r / θ1) + r) / θ2 + log(θ2 / θ1) - 1
 end
@@ -33,7 +33,7 @@ end
 # ####################################################################
 @dist_args normkldivergence Normal
 @promote normkldivergence
-function normkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
+function normkldivergence(μ1::T, σ1::T, μ2::T, σ2::T)::T where {T<:Real}
     lower, upper = _EPSILON, inv(_EPSILON)
     v1 = clamp(σ1^2, lower, upper)
     v2 = clamp(σ2^2, lower, upper)
@@ -50,7 +50,7 @@ end
 # ####################################################################
 @dist_args atanhnormkldivergence ArctanhNormal
 @promote atanhnormkldivergence
-function atanhnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T) where {T<:Real}
+function atanhnormkldivergence(μ1::T, σ1::T, μ2::T, σ2::T)::T where {T<:Real}
     # The KL divergence between two ArctanhNormal distributions is equal to the KL
     # divergence between their Normal counterparts. That is, if X and Y follow ArctanhNormal
     # distributions with parameters (μx, σX) and (μy, σy) respectively, then
@@ -75,7 +75,7 @@ end
 # ####################################################################
 @dist_args betakldivergence Beta
 @promote betakldivergence
-function betakldivergence(α1::T, β1::T, α2::T, β2::T) where {T<:Real}
+function betakldivergence(α1::T, β1::T, α2::T, β2::T)::T where {T<:Real}
     return logbeta(α2, β2) - logbeta(α1, β1) + (α1 - α2) * digamma(α1) +
         (β1 - β2) * digamma(β1) + (α2 - α1 + β2 - β1) * digamma(α1 + β1)
 end

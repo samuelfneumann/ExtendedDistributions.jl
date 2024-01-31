@@ -3,7 +3,7 @@
 # ###################################################################
 @dist_args loguniformquantile LogUniform
 @promote loguniformquantile
-function loguniformquantile(a::T, b::T, q::T) where {T<:Real}
+function loguniformquantile(a::T, b::T, q::T)::T where {T<:Real}
     exp(q * log(b/a)) * a
 end
 
@@ -12,7 +12,7 @@ end
 # ###################################################################
 @dist_args kumaraswamyquantile Kumaraswamy
 @promote kumaraswamyquantile
-function kumaraswamyquantile(a::T, b::T, q::T) where {T<:Real}
+function kumaraswamyquantile(a::T, b::T, q::T)::T where {T<:Real}
     return (1 - (1 - q)^inv(b))^inv(a)
 end
 
@@ -21,7 +21,7 @@ end
 # ###################################################################
 @dist_args logitnormquantile LogitNormal
 @promote logitnormquantile
-function logitnormquantile(μ::T, σ::T, q::T) where {T<:Real}
+function logitnormquantile(μ::T, σ::T, q::T)::T where {T<:Real}
     return logistic(norminvcdf(μ, σ, q))
 end
 
@@ -30,7 +30,7 @@ end
 # ###################################################################
 @dist_args laplacequantile Laplace
 @promote laplacequantile
-function laplacequantile(μ::Real, θ::Real, q::Real)
+function laplacequantile(μ::Real, θ::Real, q::Real)::T
     q < 1/2 ? laplace_xval(μ, θ, log(2q)) : laplace_xval(μ, θ, -log(2(1 - q)))
 end
 
@@ -39,7 +39,7 @@ end
 # ###################################################################
 @dist_args atanhnormquantile ArctanhNormal
 @promote atanhnormquantile
-function atanhnormquantile(μ::T, σ::T, q::T) where {T<:Real}
+function atanhnormquantile(μ::T, σ::T, q::T)::T where {T<:Real}
     return tanh(norminvcdf(μ, σ, q))
 end
 
@@ -48,13 +48,15 @@ end
 # ###################################################################
 @dist_args normquantile ArctanhNormal
 @promote normquantile
-normquantile(μ::T, σ::T, q::T) where {T} = norminvcdf(μ, σ, q)
+function normquantile(μ::T, σ::T, q::T)::T where {T}
+    norminvcdf(μ, σ, q)
+end
 
 # ###################################################################
 # Logistic
 # ###################################################################
 @dist_args logisticquantile Logistic
 @promote logisticquantile
-function logisticquantile(μ::T, θ::T, q::T) where {T<:Real}
+function logisticquantile(μ::T, θ::T, q::T)::T where {T<:Real}
     return logistic_xval(μ, θ, logit(q))
 end
