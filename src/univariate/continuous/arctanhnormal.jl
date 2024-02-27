@@ -1,3 +1,5 @@
+using QuadGK
+
 const _GAUSS_OFFSET = 1f-6
 
 """
@@ -95,12 +97,16 @@ Distributions.mean(d::ArctanhNormal) = ((μ, _) = params(d); tanh(μ))
 Distributions.median(d::ArctanhNormal{T}) where {T} = quantile(d, oftype(T, 1//2))
 
 function Distributions.entropy(d::ArctanhNormal{T}) where {T}
-    # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
-    #              rlax/_src/distributions.py#L319
+    # See https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/rlax/_src/distributions.py#L357
     _, σ = params(d)
     _two = one(T) + one(T)
 
-    return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
+    min_ = minimum(d)
+    max_ = maximum(d)
+    shift, _ = quadgk(x -> pdf(d, x) * log(one(x) - (tanh(x))^2), min_, max_)
+    shift = ChainRulesCore.ignore_derivatives(shift)
+
+    return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π)) - shift
 end
 
 function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
