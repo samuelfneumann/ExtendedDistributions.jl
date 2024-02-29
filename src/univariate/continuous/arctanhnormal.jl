@@ -100,13 +100,19 @@ function Distributions.entropy(d::ArctanhNormal{T}) where {T}
     # See https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/rlax/_src/distributions.py#L357
     _, σ = params(d)
     _two = one(T) + one(T)
+    grad_term = log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
 
-    min_ = minimum(d)
-    max_ = maximum(d)
-    shift, _ = quadgk(x -> pdf(d, x) * log(one(x) - (tanh(x))^2), min_, max_)
-    shift = ChainRulesCore.ignore_derivatives(shift)
+    min_ = Distributions.minimum(d)
+    max_ = Distributions.maximum(d)
 
-    return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π)) - shift
+    function integrand(x)
+        p = pdf(d, x)
+        return p ≈ zero(p) ? zero(p) : -p * log(p)
+    end
+    entropy = quadgk(integrand, min_, max_)[1]
+
+    # Straight through estimator
+    return ChainRulesCore.ignore_derivatives(entropy - grad_term) + grad_term
 end
 
 function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
