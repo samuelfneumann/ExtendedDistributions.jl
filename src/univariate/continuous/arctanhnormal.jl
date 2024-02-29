@@ -96,7 +96,7 @@ Distributions.params(d::ArctanhNormal) = (d.μ, d.σ)
 Distributions.mean(d::ArctanhNormal) = ((μ, _) = params(d); tanh(μ))
 Distributions.median(d::ArctanhNormal{T}) where {T} = quantile(d, oftype(T, 1//2))
 
-function Distributions.entropy(d::ArctanhNormal{T}) where {T}
+function Distributions.entropy(d::ArctanhNormal{T}; quadgk_kwargs=NamedTuple()) where {T}
     # See https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/rlax/_src/distributions.py#L357
     _, σ = params(d)
     _two = one(T) + one(T)
@@ -109,7 +109,7 @@ function Distributions.entropy(d::ArctanhNormal{T}) where {T}
         p = pdf(d, x)
         return p ≈ zero(p) ? zero(p) : -p * log(p)
     end
-    entropy = quadgk(integrand, min_, max_)[1]
+    entropy, err = quadgk(integrand, min_, max_; quadgk_kwargs...)
 
     # Straight through estimator
     return ChainRulesCore.ignore_derivatives(entropy - grad_term) + grad_term
