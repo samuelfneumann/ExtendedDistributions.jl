@@ -2,11 +2,8 @@ RLDist.jl
 ================
 Probability distributions in Julia.
 
-This package re-exports `Distributions.jl` and adds extra distributions. Most
-notably, the following extra distributions have been added:
-
-- ArctanhNormal (Squashed Gaussian) Distribution
-- Kumaraswamy Distribution
+This package re-exports `Distributions.jl` and `StatsFuns.jl` and adds extra
+distributions and statistics-related functions. 
 
 ## ToDo
 - [ ] Make default floating point precision Float32

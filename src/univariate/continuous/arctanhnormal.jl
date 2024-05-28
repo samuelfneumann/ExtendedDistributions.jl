@@ -1,3 +1,5 @@
+using QuadGK
+
 const _GAUSS_OFFSET = 1f-6
 
 """
@@ -70,7 +72,7 @@ end
 ArctanhNormal() = ArctanhNormal{Float64}(0.0, 1.0)
 Distributions.minimum(::ArctanhNormal{T}) where {T} = -one(T)
 Distributions.maximum(::ArctanhNormal{T}) where {T} = one(T)
-Distributions.insupport(::ArctanhNormal, x::Real) = return -one(x) < x < one(x)
+Distributions.insupport(a::ArctanhNormal, x::Real) = return minimum(a) < x < maximum(a)
 
 #### Conversions
 function Base.convert(::Type{ArctanhNormal{T}}, μ::Real, σ::Real) where T<:Real
@@ -94,36 +96,27 @@ Distributions.params(d::ArctanhNormal) = (d.μ, d.σ)
 Distributions.mean(d::ArctanhNormal) = ((μ, _) = params(d); tanh(μ))
 Distributions.median(d::ArctanhNormal{T}) where {T} = quantile(d, oftype(T, 1//2))
 
-function Distributions.entropy(d::ArctanhNormal{T}) where {T}
-    # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
-    #              rlax/_src/distributions.py#L319
+function Distributions.entropy(d::ArctanhNormal{T}; quadgk_kwargs=NamedTuple()) where {T}
+    # See https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/rlax/_src/distributions.py#L357
     _, σ = params(d)
     _two = one(T) + one(T)
+    grad_term = log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
 
-    return log(σ) + oftype(σ, 1//2) * (one(T) + log(_two * π))
+    min_ = Distributions.minimum(d)
+    max_ = Distributions.maximum(d)
+
+    function integrand(x)
+        p = pdf(d, x)
+        return p ≈ zero(p) ? zero(p) : -p * log(p)
+    end
+    entropy, err = quadgk(integrand, min_, max_; quadgk_kwargs...)
+
+    # Straight through estimator
+    return ChainRulesCore.ignore_derivatives(entropy - grad_term) + grad_term
 end
 
 function Distributions.kldivergence(p::ArctanhNormal, q::ArctanhNormal)
-    # The KL divergence between two ArctanhNormal distributions is equal to the KL
-    # divergence between their Normal counterparts. That is, if X and Y follow ArctanhNormal
-    # distributions with parameters (μx, σX) and (μy, σy) respectively, then
-    #
-    #   KL(X || Y) = KL(arctanh(X) || arctanh(Y)) = KL(Normal(μx, σx) || Normal(μy, σy))
-    #
-    # See  https://github.com/deepmind/rlax/blob/b7d1a012f888d1744245732a2bcf15f38bb7511e/
-    #              rlax/_src/distributions.py#L319
-    μ1, σ1 = params(p)
-    μ2, σ2 = params(q)
-
-    lower, upper = _EPSILON, inv(_EPSILON)
-    v1 = clamp(σ1^2, lower, upper)
-    v2 = clamp(σ2^2, lower, upper)
-    μdiff = μ2 - μ1
-
-    kl_mean = 0.5f0 * μdiff^2 / v2
-    kl_cov = 0.5f0 * ((v1/v2) - one(v1) + log(v2) - log(v1))
-
-    return kl_mean + kl_cov
+    return atanhnormkldivergence(p, q)
 end
 
 # #### Sampling
@@ -154,68 +147,22 @@ end
 
 # #### PDFs and CDFs
 function Distributions.logpdf(
-    d::ArctanhNormal{T}, x::Real; include_boundary = false,
-) where {T}
-    if include_boundary && minimum(d) <= x <= maximum(d)
-    elseif !insupport(d, x)
-        return -T(Inf)
-    end
+    d::ArctanhNormal{T}, x::Real; # include_boundary=false,
+)::Real where {T}
     μ, σ = params(d)
-
-    gauss_x = _to_gaussian(x; clamp_input = include_boundary)
-    norm = Normal(μ, σ)
-    log_density = logpdf(norm, gauss_x)
-
-    if include_boundary
-        shift = log1p(-x^2 + _EPSILON)
-    else
-        shift = log1p(-x^2)
-    end
-    return log_density - shift
+    return atanhnormlogpdf(μ, σ, x)
 end
 
 function Distributions.pdf(
-    d::ArctanhNormal{T}, x::Real; include_boundary = false,
-) where {T}
-    if include_boundary && minimum(d) <= x <= maximum(d)
-    elseif !insupport(d, x)
-        return zero(T)
-    end
+    d::ArctanhNormal{T}, x::Real; # include_boundary = false,
+)::Real where {T}
     μ, σ = params(d)
 
-    gauss_x = _to_gaussian(x; clamp_input = include_boundary)
-    norm = Normal(μ, σ)
-    density = pdf(norm, gauss_x)
+    gauss_x = atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
+    density = normpdf(μ, σ, gauss_x)
 
-    if include_boundary
-        scale = one(x) - x^2 + _EPSILON # ∈ (_EPSILON, 1 + _EPSILON)
-    else
-        scale = one(x) - x^2
-    end
+    scale = one(x) - x^2 + _EPSILON # ∈ (_EPSILON, 1 + _EPSILON)
     return density / scale
-end
-
-"""
-    _to_gaussian(actions::AbstractArray{T}; clamp_input) where {T}
-
-Convert samples drawn from a Squashed Gaussian (samples ∈ (-1, 1)) back to the
-corresponding samples drawn from a Gaussian (samples ∈ ℝ).
-
-If `clamp_input`, then clamp the input to be in (-1, 1) before inverting the action samples.
-Samples may be outside this range due to numerical instabilities.
-"""
-function _to_gaussian(x; clamp_input = true)
-    if !(x isa AbstractFloat)
-        x = float(x)
-    end
-
-    if clamp_input
-        # Clamp to ensure x ~ ArctanhNormal(μ, σ) stays in (-1, 1). It may go outside this
-        # range due to numerical instabilities, so clipping isn't a bad idea.
-        return atanh(clamp(x, -one(x) + _GAUSS_OFFSET, one(x) - _GAUSS_OFFSET))
-    else
-        return atanh(x)
-    end
 end
 
 function Distributions.cdf(d::ArctanhNormal{T}, x::Real) where {T}
@@ -233,7 +180,5 @@ function Distributions.cdf(d::ArctanhNormal{T}, x::Real) where {T}
 end
 
 function Distributions.quantile(d::ArctanhNormal{T}, q::Real) where {T}
-    μ, σ = params(d)
-    n = Normal(μ, σ)
-    return tanh(quantile(n, q))
+    return atanhnormquantile(params(d)..., q)
 end
