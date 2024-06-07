@@ -166,17 +166,8 @@ function Distributions.pdf(
 end
 
 function Distributions.cdf(d::ArctanhNormal{T}, x::Real) where {T}
-    if x <= minimum(d)
-        return zero(T)
-    elseif x >= maximum(d)
-        return one(T)
-    end
-
-    # If Y = f(x) is invertible and monotonically increasing, then P_y(y) = P_x(f⁻¹(y))
     μ, σ = params(d)
-    norm = Normal(μ, σ)
-    gauss_x = _to_gaussian(x)
-    return cdf(norm, gauss_x)
+    return atanhnormcdf(μ, σ, x)
 end
 
 function Distributions.quantile(d::ArctanhNormal{T}, q::Real) where {T}
