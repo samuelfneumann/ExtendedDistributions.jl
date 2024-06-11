@@ -27,7 +27,7 @@ end
 @dist_args kumaraswamycdf Kumaraswamy
 @promote kumaraswamycdf
 function kumaraswamycdf(a::T, b::T, y::T)::T where {T<:Real}
-    1 - kumaraswamyccdf(a, b, y)
+    1 - kumaraswamycdf(a, b, y)
 end
 
 # ###################################################################
@@ -39,9 +39,9 @@ function logisticccdf(μ::T, θ::T, y::T)::T where {T<:Real}
     return logistic(-logistic_zval(μ, θ, y))
 end
 
-@dist_args logisticcdf Logistic
-@promote logisticcdf
-function logisticcdf(μ::T, θ::T, y::T)::T where {T<:Real}
+@dist_args logisticdf Logistic
+@promote logisticdf
+function logisticdf(μ::T, θ::T, y::T)::T where {T<:Real}
     return logistic(logistic_zval(μ, θ, y))
 end
 
@@ -57,7 +57,7 @@ end
 @dist_args logitnormcdf LogitNormal
 @promote logitnormcdf
 function logitnormcdf(μ::T, σ::T, y::T)::T where {T<:Real}
-    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normccdf(μ, σ, logit(y))
+    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normcdf(μ, σ, logit(y))
 end
 
 # ###################################################################
@@ -87,5 +87,5 @@ end
 @dist_args atanhnormcdf ArctanhNormal
 @promote atanhnormcdf
 function atanhnormcdf(μ::T, σ::T, y::T)::T where {T<:Real}
-    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normccdf(μ, σ, atanh(y))
+    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normcdf(μ, σ, atanh(y))
 end
