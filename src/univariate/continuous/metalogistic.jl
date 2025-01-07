@@ -1,7 +1,5 @@
 # Adapted from https://github.com/tadamcz/metalogistic/blob/master/metalogistic/main.py
-using Flux
 using Printf
-using Plots
 using Integrals
 using Roots
 using LogExpFunctions

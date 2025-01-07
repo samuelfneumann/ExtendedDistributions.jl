@@ -11,7 +11,7 @@ end
 @promote loguniformcdf
 function loguniformcdf(a::T, b::T, y::T)::T where {T<:Real}
     _y = clamp(y, a, b)
-    return log(log(_y / a)) - log(log(b / a))
+    return exp(log(log(_y / a)) - log(log(b / a)))
 end
 
 # ###################################################################
@@ -51,13 +51,13 @@ end
 @dist_args logitnormccdf LogitNormal
 @promote logitnormccdf
 function logitnormccdf(μ::T, σ::T, y::T)::T where {T<:Real}
-    return y ≤ 0 ? zero(T) : y ≥ 1 ? one(T) : normcdf(μ, σ, logit(y))
+    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normccdf(μ, σ, logit(y))
 end
 
 @dist_args logitnormcdf LogitNormal
 @promote logitnormcdf
 function logitnormcdf(μ::T, σ::T, y::T)::T where {T<:Real}
-    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normccdf(μ, σ, logit(y))
+    return y ≤ 0 ? zero(T) : y ≥ 1 ? one(T) : normcdf(μ, σ, logit(y))
 end
 
 # ###################################################################
@@ -81,11 +81,11 @@ end
 @dist_args atanhnormccdf ArctanhNormal
 @promote atanhnormccdf
 function atanhnormccdf(μ::T, σ::T, y::T)::T where {T<:Real}
-    return y ≤ 0 ? zero(T) : y ≥ 1 ? one(T) : normcdf(μ, σ, atanh(y))
+    return y ≤ -1 ? one(T) : y ≥ 1 ? zero(T) : normccdf(μ, σ, atanh(y))
 end
 
 @dist_args atanhnormcdf ArctanhNormal
 @promote atanhnormcdf
 function atanhnormcdf(μ::T, σ::T, y::T)::T where {T<:Real}
-    return y ≤ 0 ? one(T) : y ≥ 1 ? zero(T) : normccdf(μ, σ, atanh(y))
+    return y ≤ -1 ? zero(T) : y ≥ 1 ? one(T) : normcdf(μ, σ, atanh(y))
 end
